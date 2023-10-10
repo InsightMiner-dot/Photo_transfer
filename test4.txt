@@ -28,8 +28,8 @@ if uploaded_image is not None:
             detection_result = model.predict(uploaded_image, save=False, conf=confidence_threshold)
             
             # Display the detection result
-            st.image(detection_result[0].img, caption="Detection Result", use_column_width=True)
-
+            st.image(detection_result[0].img[0], caption="Detection Result", use_column_width=True)
+            
             # Display object names one by one
             st.sidebar.subheader("Detected Object Names:")
             for obj in detection_result.names[0]:
