@@ -1,0 +1,40 @@
+import streamlit as st
+import os
+import tempfile
+from ultralytics import YOLO
+import base64
+
+# Initialize the YOLO model
+model = YOLO(r"C:\user\Documents\ML_Project\Insulator\best.pt")
+
+# Streamlit app
+st.title("YOLO Object Detection with Streamlit")
+
+# Create a file uploader for image
+uploaded_image = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png", "gif", "bmp"])
+
+if uploaded_image is not None:
+    # Create a temporary directory to store the image and result
+    temp_dir = tempfile.mkdtemp()
+    image_path = os.path.join(temp_dir, uploaded_image.name)
+    result_path = os.path.join(temp_dir, "result.jpg")
+
+    with open(image_path, "wb") as f:
+        f.write(uploaded_image.read())
+
+    # Perform detection on the uploaded image and save the result
+    detection_result = model.predict(image_path, save=True, save_txt=True)
+    detection_result[0].save(result_path)
+
+    # Display the detection result in the same image
+    result_image = open(result_path, "rb").read()
+    st.image(result_image, use_column_width=True, caption="Detection Result")
+
+    # Provide a "Save" button to download the result
+    result_bytes = open(result_path, "rb").read()
+    result_b64 = base64.b64encode(result_bytes).decode()
+    st.markdown("Download the Detection Result")
+    st.markdown(
+        f'<a href="data:application/octet-stream;base64,{result_b64}" download="result.jpg">Click here to download</a>',
+        unsafe_allow_html=True,
+    )
