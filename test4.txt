@@ -34,3 +34,8 @@ if uploaded_image is not None:
             st.sidebar.subheader("Detected Object Names:")
             for obj in detection_result.names[0]:
                 st.sidebar.write(obj)
+
+            # Display object count
+            object_count = len(detection_result.names[0])
+            st.sidebar.subheader("Object Count:")
+            st.sidebar.write(object_count)
