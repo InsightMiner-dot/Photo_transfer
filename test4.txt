@@ -1,0 +1,36 @@
+import streamlit as st
+import os
+from ultralytics import YOLO
+from PIL import Image
+import io
+
+# Initialize the YOLO model
+model = YOLO(r"C:\user\Documents\ML_Project\Insulator\best.pt")
+
+# Streamlit app
+st.title("YOLO Object Detection with Streamlit")
+
+# Create a file uploader for image
+uploaded_image = st.sidebar.file_uploader("Upload an image", type=["jpg", "jpeg", "png", "gif", "bmp"])
+
+# Initialize confidence threshold in the sidebar
+confidence_threshold = st.sidebar.slider("Confidence Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.05)
+
+if uploaded_image is not None:
+    # Display the uploaded image
+    image = Image.open(uploaded_image)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    # Run Detection Button
+    if st.sidebar.button("Run Detection"):
+        with st.spinner("Detecting objects..."):
+            # Perform detection on the uploaded image with the adjusted confidence threshold
+            detection_result = model.predict(uploaded_image, save=False, conf=confidence_threshold)
+            
+            # Display the detection result
+            st.image(detection_result[0].img, caption="Detection Result", use_column_width=True)
+
+            # Display object names one by one
+            st.sidebar.subheader("Detected Object Names:")
+            for obj in detection_result.names[0]:
+                st.sidebar.write(obj)
