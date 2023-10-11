@@ -1,0 +1,76 @@
+import streamlit as st
+from PIL import Image
+import cv2
+import glob
+from IPython.display import Image as IPImage
+from ultralytics import YOLO
+
+# Function to perform object detection on a single image
+def perform_object_detection_single_image(image_path, confidence_threshold):
+    model = YOLO("/content/drive/MyDrive/CustomObject.v1i.yolov8/Weights/best.pt")
+    result = model(image_path, conf=confidence_threshold)
+    return result
+
+# Function to display detected objects in the sidebar
+def display_detected_objects_in_sidebar(result):
+    for prediction in result.pred:
+        st.image(prediction.render(), use_column_width=True)
+
+# Function to perform object detection on a batch of images
+def perform_object_detection_batch(folder_path, confidence_threshold):
+    model = YOLO("/content/drive/MyDrive/CustomObject.v1i.yolov8/Weights/best.pt")
+    result = model(folder_path, conf=confidence_threshold)
+    return result
+
+# Function to perform object detection on a video
+def perform_object_detection_video(video_path, confidence_threshold):
+    model = YOLO("/content/drive/MyDrive/CustomObject.v1i.yolov8/Weights/best.pt")
+    result = model(video_path, conf=confidence_threshold)
+    return result
+
+# Streamlit app
+st.title("YOLO Object Detection App")
+
+# Add a confidence threshold slider to the left sidebar
+confidence_threshold = st.sidebar.slider("Confidence Threshold", 0.0, 1.0, 0.5, 0.05)
+
+# Add a "Run Detection" button to the left sidebar
+run_detection = st.sidebar.button("Run Detection")
+
+st.sidebar.header("Select an option")
+
+option = st.sidebar.selectbox(
+    "Choose an option",
+    ["Single Image Detection", "Batch Detection", "Video Detection"]
+)
+
+st.sidebar.header("Detection Result")
+
+# Initialize an empty result for the sidebar
+sidebar_result = None
+
+if run_detection:
+    if option == "Single Image Detection":
+        uploaded_image = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"])
+        if uploaded_image is not None:
+            image = Image.open(uploaded_image)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
+            st.write("Detecting objects...")
+            sidebar_result = perform_object_detection_single_image(uploaded_image, confidence_threshold)
+
+    elif option == "Batch Detection":
+        folder_path = st.text_input("Enter folder path for batch detection")
+        st.write("Detecting objects in batch...")
+        sidebar_result = perform_object_detection_batch(folder_path, confidence_threshold)
+
+    elif option == "Video Detection":
+        video_file = st.file_uploader("Upload a video file", type=["mp4"])
+        st.write("Detecting objects in video...")
+        sidebar_result = perform_object_detection_video(video_file, confidence_threshold)
+
+# Display the detection result in the sidebar
+if sidebar_result is not None:
+    st.sidebar.subheader("Detected Objects")
+    display_detected_objects_in_sidebar(sidebar_result)
+
+st.sidebar.text("Note: This example assumes you have the YOLO model weights and configuration files in the specified paths.")
