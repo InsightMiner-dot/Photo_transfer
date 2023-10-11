@@ -1,0 +1,50 @@
+import streamlit as st
+from ultralytics import YOLO
+import cv2
+import numpy as np
+import glob
+
+def main():
+    st.title("YOLO Object Detection with Streamlit")
+
+    # Create sidebar for input selection
+    st.sidebar.header("Select Input Type")
+    input_type = st.sidebar.selectbox("Input Type", ["Image", "Batch of Images", "Video"])
+
+    if input_type == "Image":
+        st.header("Single Image Detection")
+        uploaded_image = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"])
+        if uploaded_image is not None:
+            model = YOLO("path/to/your/weights.pt")
+            image = cv2.imdecode(np.fromstring(uploaded_image.read(), np.uint8), cv2.IMREAD_COLOR)
+            result = model.predict(image, save=True, save_txt=True)
+
+            # Display the uploaded image
+            st.subheader("Uploaded Image")
+            st.image(image, use_column_width=True, caption="Uploaded Image")
+
+            # Display the detection result
+            st.subheader("Detection Result")
+            st.image(result[0], use_column_width=True, caption="Object Detection Result")
+
+    elif input_type == "Batch of Images":
+        st.header("Batch Image Detection")
+        folder_path = st.text_input("Enter the path to the folder containing images:")
+        if folder_path:
+            model = YOLO("path/to/your/weights.pt")
+            result_folder = model.predict(folder_path, save=True, save_txt=True)
+
+            # Display the result images
+            for image_path in glob.glob("path/to/save_results_folder/*.jpg")[:3]:
+                st.image(image_path, use_column_width=True, caption="Detection Result")
+
+    elif input_type == "Video":
+        st.header("Video Detection")
+        uploaded_video = st.file_uploader("Upload a video", type=["mp4"])
+        if uploaded_video is not None:
+            model = YOLO("path/to/your/weights.pt")
+            result_video = model.predict(uploaded_video, save=True, save_txt=True)
+            st.video(result_video)
+
+if __name__ == "__main__":
+    main()
