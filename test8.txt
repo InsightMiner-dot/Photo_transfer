@@ -1,0 +1,43 @@
+import streamlit as st
+from ultralytics import YOLO
+import cv2
+import glob
+from IPython.display import Image, display
+def main():
+    st.title("YOLO Object Detection with Streamlit")
+    
+    # Upload a single image
+    st.header("Single Image Detection")
+    uploaded_image = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"])
+    if uploaded_image is not None:
+        # Perform object detection on the uploaded image
+        model = YOLO("path/to/your/weights.pt")
+        image = cv2.imdecode(np.fromstring(uploaded_image.read(), np.uint8), cv2.IMREAD_COLOR)
+        result = model.predict(image, save=True, save_txt=True)
+
+        # Display the result image
+        st.image(result[0], use_column_width=True, caption="Detection Result")
+
+    # Object detection for a batch of images
+    st.header("Batch Image Detection")
+    folder_path = st.text_input("Enter the path to the folder containing images:")
+    if folder_path:
+        model = YOLO("path/to/your/weights.pt")
+        result_folder = model.predict(folder_path, save=True, save_txt=True)
+
+        # Display the result images
+        for image_path in glob.glob("path/to/save_results_folder/*.jpg")[:3]:
+            st.image(image_path, use_column_width=True, caption="Detection Result")
+
+    # Object detection on a video
+    st.header("Video Detection")
+    uploaded_video = st.file_uploader("Upload a video", type=["mp4"])
+    if uploaded_video is not None:
+        model = YOLO("path/to/your/weights.pt")
+        result_video = model.predict(uploaded_video, save=True, save_txt=True)
+
+        # Display the result video (you may need to save and reload the video)
+        st.video(result_video, format="video/mp4")
+
+if __name__ == "__main__":
+    main()
